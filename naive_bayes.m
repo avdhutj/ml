@@ -130,13 +130,22 @@ roc_probs = zeros(size(test,1), 1);
 class = 4;
 for i = 1:size(test, 1)
     roc_probs(i) = prior_class(class);
+%     z = 0;
+%     for k = 1:num_classes
+%         z = z + prior_class(k)*train_map_prob{j}(test(i, j), k);
+%     end
+    for j = 1:num_feat
+        roc_probs(i) = roc_probs(i) * train_map_prob{j}(test(i,j), class);
+    end
     z = 0;
     for k = 1:num_classes
-        z = z + prior_class(k)*train_map_prob{j}(test(i, j), k);
+        z_curr = prior_class(k);
+        for j = 1:num_feat
+            z_curr = z_curr * train_map_prob{j}(test(i,j), k);
+        end
+        z = z + z_curr;
     end
-    for j = 1:num_feat
-        roc_probs(i) = (1/z) * roc_probs(i) * train_map_prob{j}(test(i,j), class);
-    end
+    roc_probs(i) = roc_probs(i) / z;
 end
 
 thresh = 0:0.01:1;
